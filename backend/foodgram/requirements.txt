@@ -1,3 +1,7 @@
 Django==2.2.19
+Pillow==9.5.0
+psycopg2-binary==2.8.6
+python-dotenv==1.0.0
 pytz==2023.3
+sorl-thumbnail==12.9.0
 sqlparse==0.4.4
