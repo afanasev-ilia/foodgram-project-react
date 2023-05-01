@@ -1,5 +1,6 @@
 # from django.http import HttpRequest
 from rest_framework import serializers
+from djoser.serializers import UserSerializer, UserCreateSerializer
 # from rest_framework.exceptions import ValidationError
 # from rest_framework.generics import get_object_or_404
 # from rest_framework.validators import UniqueValidator
@@ -8,18 +9,46 @@ from users.models import User
 # from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
-class UsersSerializer(serializers.ModelSerializer):
-    # username = serializers.RegexField(
-    #     r"^[\w.@+-]+\Z$", max_length=150,
-    #     required=True, validators=[
-    #         UniqueValidator(queryset=User.objects.all())]
-    # )
+class CustomUserSerializer(UserSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            #    'is_subscribed',
+        )
+
+
+class CustomUserCreateSerializer(UserCreateSerializer):
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
 
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'first_name', 'last_name',
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'password',
         )
+
+
+class AuthTokenSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(max_length=254)
+    password = serializers.CharField(required=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'password',
+        )
+
 
 # class GenresSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -96,18 +125,6 @@ class UsersSerializer(serializers.ModelSerializer):
 #                 'Email и username не соответствуют'
 #             )
 #         return data
-
-
-# class AuthTokenSerializer(serializers.ModelSerializer):
-#     username = serializers.RegexField(r"^[\w.@+-]+\Z$", max_length=150)
-#     confirmation_code = serializers.CharField(required=True)
-
-#     class Meta:
-#         model = User
-#         fields = (
-#             'username',
-#             'confirmation_code'
-#         )
 
 
 # class ReviewsSerializer(serializers.ModelSerializer):

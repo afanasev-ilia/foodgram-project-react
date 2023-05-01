@@ -1,17 +1,14 @@
 from django.conf import settings
-from django.core.paginator import Paginator
 from django.db.models import QuerySet
 from django.http import HttpRequest
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 
-def paginate(
-    request: HttpRequest,
-    queryset: QuerySet,
-    pagesize: int = settings.PAGE_SIZE,
-) -> QuerySet:
-    return Paginator(queryset, pagesize).get_page(request.GET.get('page'))
+# class APIListPagination(PageNumberPagination):
+#     page_size = 5
+#     page_size_query_param = 'page_size'
+#     max_page_size = 10000
 
 
 def truncatechars(chars: str, chars_limit: int = settings.NUMCATECHARS) -> str:

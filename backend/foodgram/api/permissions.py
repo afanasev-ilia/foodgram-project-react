@@ -1,19 +1,17 @@
-# from typing import Any
-
-# from django.http import HttpRequest
-# from rest_framework import permissions, viewsets
+from django.http import HttpRequest
+from rest_framework import permissions, viewsets
 
 
-# class IsOwnerOrReadOnly(permissions.BasePermission):
-#     """
-#     Custom permission to only allow owners of an object to edit it.
-#     """
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    """
+    Custom permission to only allow owners of an object to edit it.
+    """
 
-#     def has_object_permission(self, request, view, obj):
-#         return (
-#             request.method in permissions.SAFE_METHODS
-#             or obj.owner == request.user
-#         )
+    def has_object_permission(self, request, view, obj):
+        return (
+            request.method in permissions.SAFE_METHODS
+            or obj.owner == request.user
+        )
 
 
 # class IsSuperUserOrReadOnly(permissions.BasePermission):
@@ -26,14 +24,14 @@
 #         return request.user.is_superuser
 
 
-# class IsAdminOrReadOnly(permissions.BasePermission):
-#     """
-#     Права админа или только на чтение
-#     """
-#     def has_permission(self, request, view):
-#         return (request.method in permissions.SAFE_METHODS
-#                 or (request.user.is_authenticated
-#                     and request.user.is_admin))
+class IsAdminOrReadOnly(permissions.BasePermission):
+    """
+    Права админа или только на чтение
+    """
+    def has_permission(self, request, view):
+        return (request.method in permissions.SAFE_METHODS
+                or (request.user.is_authenticated
+                    and request.user.is_admin))
 
 
 # class IsAdminOrSuperUser(permissions.BasePermission):
