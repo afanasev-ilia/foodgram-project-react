@@ -1,98 +1,47 @@
-# from django.core.mail import send_mail
 # from django.db.models import Avg, QuerySet
 from django.shortcuts import get_object_or_404
 # from django_filters.rest_framework import DjangoFilterBackend
-from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 # from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
+from djoser.views import UserViewSet
 
-# from api_yamdb.settings import ADMIN_EMAIL
 from users.models import User
-from api.serializers import CustomUserSerializer, CustomUserCreateSerializer, AuthTokenSerializer
-# from reviews.models import Category, Genre, Review, Title, User
+from core.utils import CustomPagination
+from api.serializers import CustomUserSerializer, CustomUserCreateSerializer, CustomSetPasswordSerializer
 # from .filters import TitleFilter
 # from .permissions import (IsAdminOrReadOnly, IsAdminOrSuperUser,
 #                           IsAuthorOrModeratorOrAdminOrSuperuser)
 
 
-# class CRDViewSet(mixins.ListModelMixin,
-#                  mixins.CreateModelMixin,
-#                  mixins.DestroyModelMixin,
-#                  viewsets.GenericViewSet):
-#     pass
-
-class UsersViewSet(viewsets.ModelViewSet):
+class CustomUsersViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
+    permission_classes = (AllowAny,)
+    pagination_class = CustomPagination
+    http_method_names = ['get', 'post']
     # lookup_field = 'username'
     # filter_backends = (SearchFilter,)
     # search_fields = ('username',)
-    # permission_classes = (IsAuthenticated, IsAdminOrSuperUser,)
-
-    # """данная строка запрещает метод put, который не разрешён документацией"""
-    # http_method_names = ['get', 'post', 'head', 'patch', 'delete']
 
     def get_serializer_class(self):
         if self.action == 'list':
             return CustomUserSerializer
         return CustomUserCreateSerializer
 
-    @action(
-        methods=['GET'],
-        detail=False,
-        permission_classes=(IsAuthenticated, ),
-        url_path='me',
-    )
-    def me_actions(self, request):
-        if request.method == 'GET':
-            serializer = CustomUserSerializer(request.user)
-            return Response(serializer.data)
 
-    #     serializer = UsersSerializer(
-    #         request.user, data=request.data, partial=True,
-    #     )
-    #     serializer.is_valid(raise_exception=True)
-    #     serializer.save(role=request.user.role)
+    # @action(
+    #     methods=['get'],
+    #     detail=False,
+    #     permission_classes=(IsAuthenticated, ),
+    #     url_path='subscriptions',
+    # )
+    # def get_subscriptions(self, request):
+    #     serializer = CustomUserSerializer(request.user)
     #     return Response(serializer.data)
-
-
-class AuthToken(APIView):
-    """Получить JWT-токен"""
-
-    @staticmethod
-    def post(request):
-        serializer = AuthTokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        user = get_object_or_404(User, email=data['email'])
-        if user.password != data['password']:
-            return Response(
-                {'password': 'Неверный пароль'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        token = RefreshToken.for_user(user).access_token
-        return Response({'auth_token': str(token)},
-                        status=status.HTTP_200_OK)
-
-
-# class LogoutToken(APIView):
-#     """Удалить JWT-токен"""
-#     permission_classes = (IsAuthenticated,)
-
-#     def post(self, request):
-#         try:
-#             refresh_token = request.data["refresh_token"]
-#             token = RefreshToken(refresh_token)
-#             token.blacklist()
-
-#             return Response(status=status.HTTP_205_RESET_CONTENT)
-#         except Exception as e:
-#             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 # class GenresViewSet(CRDViewSet):
@@ -126,29 +75,6 @@ class AuthToken(APIView):
 #     search_fields = ('name',)
 #     lookup_field = 'slug'
 #     permission_classes = (IsAdminOrReadOnly,)
-
-
-# class AuthSignup(APIView):
-#     """
-#     Зарегистрироваmь пользователя и отправить ему код подтверждения на email
-#     """
-
-#     @staticmethod
-#     def post(request):
-#         serializer = AuthSignupSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         user, created = User.objects.get_or_create(
-#             username=serializer.validated_data['username'],
-#             email=serializer.validated_data['email'],
-#         )
-#         send_mail(
-#             'Код подтверждения для yamdb',
-#             f'Ваш код подтверждения - {user.confirmation_code}',
-#             ADMIN_EMAIL,
-#             [user.email],
-#             fail_silently=False,
-#         )
-#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # class ReviewsViewSet(viewsets.ModelViewSet):

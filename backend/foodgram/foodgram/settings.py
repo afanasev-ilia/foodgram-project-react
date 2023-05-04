@@ -1,6 +1,5 @@
 import os
 
-from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,8 +26,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'djoser',
-    'rest_framework_simplejwt.token_blacklist',
     'sorl.thumbnail',
 ]
 
@@ -63,17 +62,27 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 REST_FRAMEWORK = {
-    # 'DEFAULT_FILTER_BACKENDS': (
-    #     'django_filters.rest_framework.DjangoFilterBackend',
-    # ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 5,
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
+
+DJOSER = {
+    # 'SERIALIZERS': {
+    #     'set_password': 'djoser.serializers.SetPasswordSerializer',
+    # },
+    'SERIALIZERS': {
+        'set_password': 'api.serializers.CustomSetPasswordSerializer',
+    },
+    'PERMISSIONS': {
+        'user': ['api.permissions.IsAdminOrReadOnly'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
+    },
+    'HIDE_USERS': False,
 }
 
 DATABASES = {
@@ -114,7 +123,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-PAGE_SIZE = 10
+# PAGE_SIZE = 10
 
 NUMCATECHARS = 15
 
@@ -125,8 +134,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 AUTH_USER_MODEL = 'users.User'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-
-SIMPLE_JWT = {
-   'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
-   'AUTH_HEADER_TYPES': ('Bearer',),
-}

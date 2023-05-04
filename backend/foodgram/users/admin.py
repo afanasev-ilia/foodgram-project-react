@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from core.admin import BaseAdmin
-from users.models import User
+from users.models import User, Follow
 
 
 @admin.register(User)
@@ -17,3 +17,13 @@ class UserAdmin(BaseAdmin):
     list_editable = ('username', 'email', 'first_name', 'last_name', 'password',)
     search_fields = ('username', 'first_name', 'last_name',)
     list_filter = ('username', 'email',)
+
+
+@admin.register(Follow)
+class FollowAdmin(BaseAdmin):
+    list_display = (
+        'user',
+        'author',
+    )
+    search_fields = ('user',)
+    list_filter = ('author',)

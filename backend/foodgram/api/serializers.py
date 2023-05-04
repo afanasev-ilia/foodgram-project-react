@@ -1,12 +1,12 @@
 # from django.http import HttpRequest
+from django.contrib.auth.password_validation import validate_password
+from django.core import exceptions as django_exceptions
 from rest_framework import serializers
-from djoser.serializers import UserSerializer, UserCreateSerializer
-# from rest_framework.exceptions import ValidationError
+from djoser.serializers import UserSerializer, UserCreateSerializer, SetPasswordSerializer
 # from rest_framework.generics import get_object_or_404
 # from rest_framework.validators import UniqueValidator
 
 from users.models import User
-# from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class CustomUserSerializer(UserSerializer):
@@ -25,6 +25,7 @@ class CustomUserSerializer(UserSerializer):
 class CustomUserCreateSerializer(UserCreateSerializer):
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
+    email = serializers.CharField(required=True)
 
     class Meta:
         model = User
@@ -38,17 +39,22 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         )
 
 
-class AuthTokenSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(max_length=254)
-    password = serializers.CharField(required=True)
+class CustomSetPasswordSerializer(SetPasswordSerializer):
+    new_password = serializers.CharField(style={"input_type": "password"})
+    current_password = serializers.CharField(style={"input_type": "password"})
+
+    # new_password = serializers.CharField(required=True)
+    # current_password = serializers.CharField(required=True)
+    # first_name = serializers.CharField(required=False)
+    # last_name = serializers.CharField(required=False)
+    # email = serializers.CharField(required=False)
 
     class Meta:
         model = User
         fields = (
-            'email',
-            'password',
-        )
-
+                'new_password',
+                'current_password',
+            )
 
 # class GenresSerializer(serializers.ModelSerializer):
 #     class Meta:
