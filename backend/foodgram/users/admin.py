@@ -14,7 +14,13 @@ class UserAdmin(BaseAdmin):
         'last_name',
         'password',
     )
-    list_editable = ('username', 'email', 'first_name', 'last_name', 'password',)
+    list_editable = (
+        'username',
+        'email',
+        'first_name',
+        'last_name',
+        'password',
+    )
     search_fields = ('username', 'first_name', 'last_name',)
     list_filter = ('username', 'email',)
 

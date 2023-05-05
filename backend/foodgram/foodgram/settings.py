@@ -74,9 +74,9 @@ DJOSER = {
     # 'SERIALIZERS': {
     #     'set_password': 'djoser.serializers.SetPasswordSerializer',
     # },
-    'SERIALIZERS': {
-        'set_password': 'api.serializers.CustomSetPasswordSerializer',
-    },
+    # 'SERIALIZERS': {
+    #     'set_password': 'api.serializers.CustomSetPasswordSerializer',
+    # },
     'PERMISSIONS': {
         'user': ['api.permissions.IsAdminOrReadOnly'],
         'user_list': ['rest_framework.permissions.AllowAny'],

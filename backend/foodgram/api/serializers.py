@@ -1,8 +1,7 @@
 # from django.http import HttpRequest
-from django.contrib.auth.password_validation import validate_password
-from django.core import exceptions as django_exceptions
+# from django.core import exceptions as django_exceptions
 from rest_framework import serializers
-from djoser.serializers import UserSerializer, UserCreateSerializer, SetPasswordSerializer
+from djoser.serializers import UserSerializer, UserCreateSerializer
 # from rest_framework.generics import get_object_or_404
 # from rest_framework.validators import UniqueValidator
 
@@ -38,23 +37,6 @@ class CustomUserCreateSerializer(UserCreateSerializer):
             'password',
         )
 
-
-class CustomSetPasswordSerializer(SetPasswordSerializer):
-    new_password = serializers.CharField(style={"input_type": "password"})
-    current_password = serializers.CharField(style={"input_type": "password"})
-
-    # new_password = serializers.CharField(required=True)
-    # current_password = serializers.CharField(required=True)
-    # first_name = serializers.CharField(required=False)
-    # last_name = serializers.CharField(required=False)
-    # email = serializers.CharField(required=False)
-
-    class Meta:
-        model = User
-        fields = (
-                'new_password',
-                'current_password',
-            )
 
 # class GenresSerializer(serializers.ModelSerializer):
 #     class Meta:

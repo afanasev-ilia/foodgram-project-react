@@ -1,7 +1,7 @@
 # from django.db.models import Avg, QuerySet
 from django.shortcuts import get_object_or_404
 # from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, status, viewsets
+from rest_framework import filters, mixins, status, viewsets, serializers
 from rest_framework.decorators import action
 # from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -11,7 +11,7 @@ from djoser.views import UserViewSet
 
 from users.models import User
 from core.utils import CustomPagination
-from api.serializers import CustomUserSerializer, CustomUserCreateSerializer, CustomSetPasswordSerializer
+from api.serializers import CustomUserSerializer
 # from .filters import TitleFilter
 # from .permissions import (IsAdminOrReadOnly, IsAdminOrSuperUser,
 #                           IsAuthorOrModeratorOrAdminOrSuperuser)
@@ -20,18 +20,11 @@ from api.serializers import CustomUserSerializer, CustomUserCreateSerializer, Cu
 class CustomUsersViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = (AllowAny,)
     pagination_class = CustomPagination
     http_method_names = ['get', 'post']
     # lookup_field = 'username'
     # filter_backends = (SearchFilter,)
     # search_fields = ('username',)
-
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return CustomUserSerializer
-        return CustomUserCreateSerializer
-
 
     # @action(
     #     methods=['get'],
