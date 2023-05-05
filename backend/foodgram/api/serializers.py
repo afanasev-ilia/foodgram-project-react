@@ -5,10 +5,13 @@ from djoser.serializers import UserSerializer, UserCreateSerializer
 # from rest_framework.generics import get_object_or_404
 # from rest_framework.validators import UniqueValidator
 
-from users.models import User
+from users.models import User, Follow
+from recipes.models import Ingredient, Tag, Recipe
 
 
 class CustomUserSerializer(UserSerializer):
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = User
         fields = (
@@ -17,8 +20,14 @@ class CustomUserSerializer(UserSerializer):
             'username',
             'first_name',
             'last_name',
-            #    'is_subscribed',
+            'is_subscribed',
         )
+
+    def get_is_subscribed(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, author=obj).exists()
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -37,6 +46,17 @@ class CustomUserCreateSerializer(UserCreateSerializer):
             'password',
         )
 
+
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredient
+        fields = ('name', 'measurement_unit')
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ('name', 'color', 'slug')
 
 # class GenresSerializer(serializers.ModelSerializer):
 #     class Meta:

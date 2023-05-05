@@ -1,13 +1,13 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views import CustomUsersViewSet
+from api.views import CustomUsersViewSet, TagViewSet, IngredientViewSet
 
 
 router = DefaultRouter()
 router.register('v1/users', CustomUsersViewSet, basename='users')
-# router.register('v1/titles', TitleViewSet)
-# router.register('v1/categories', CategoryViewSet)
+router.register('v1/tags', TagViewSet, basename='tags')
+router.register('v1/ingredients', IngredientViewSet, basename='ingredients')
 # router.register(
 #     'v1/titles/(?P<title_id>[0-9]+)/reviews',
 #     ReviewsViewSet,
@@ -18,8 +18,6 @@ router.register('v1/users', CustomUsersViewSet, basename='users')
 #     CommentsViewSet,
 #     basename='comments',
 # )
-
-# router.register('v1/categories', CategoryViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

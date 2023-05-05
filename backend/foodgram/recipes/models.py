@@ -7,7 +7,7 @@ from core.utils import truncatechars
 User = get_user_model()
 
 
-class Tags(models.Model):
+class Tag(models.Model):
     name = models.CharField(
         'название тега',
         max_length=200,
@@ -34,7 +34,7 @@ class Tags(models.Model):
         return truncatechars(self.name, settings.NUMCATECHARS)
 
 
-class Ingredients(models.Model):
+class Ingredient(models.Model):
     name = models.CharField(
         'название ингредиента',
         max_length=200,
@@ -55,7 +55,7 @@ class Ingredients(models.Model):
         return truncatechars(self.name, settings.NUMCATECHARS)
 
 
-class Recipes(models.Model):
+class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -77,8 +77,8 @@ class Recipes(models.Model):
         verbose_name='текст',
         help_text='введите текст',
     )
-    ingredients = models.ManyToManyField(Ingredients)
-    tags = models.ManyToManyField(Tags)
+    ingredients = models.ManyToManyField(Ingredient)
+    tags = models.ManyToManyField(Tag)
     cooking_time = models.IntegerField(
         verbose_name='время приготовления в минутах',
         help_text='укажите время приготовления в минутах',

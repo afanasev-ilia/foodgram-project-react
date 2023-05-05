@@ -10,8 +10,10 @@ from rest_framework.views import APIView
 from djoser.views import UserViewSet
 
 from users.models import User
+from recipes.models import Ingredient, Tag, Recipe
 from core.utils import CustomPagination
-from api.serializers import CustomUserSerializer
+from api.serializers import CustomUserSerializer, IngredientSerializer, TagSerializer
+from api.permissions import IsAdminOrReadOnly
 # from .filters import TitleFilter
 # from .permissions import (IsAdminOrReadOnly, IsAdminOrSuperUser,
 #                           IsAuthorOrModeratorOrAdminOrSuperuser)
@@ -36,6 +38,17 @@ class CustomUsersViewSet(UserViewSet):
     #     serializer = CustomUserSerializer(request.user)
     #     return Response(serializer.data)
 
+
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+
+
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (IsAdminOrReadOnly,)
 
 # class GenresViewSet(CRDViewSet):
 #     queryset = Genre.objects.all()

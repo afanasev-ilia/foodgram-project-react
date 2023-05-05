@@ -1,10 +1,10 @@
 from django.contrib import admin
 
 from core.admin import BaseAdmin
-from recipes.models import Tags, Ingredients, Recipes
+from recipes.models import Tag, Ingredient, Recipe
 
 
-@admin.register(Recipes)
+@admin.register(Recipe)
 class RecipesAdmin(BaseAdmin):
     list_display = (
         'pk',
@@ -19,7 +19,7 @@ class RecipesAdmin(BaseAdmin):
     list_filter = ('text',)
 
 
-@admin.register(Tags)
+@admin.register(Tag)
 class TagsAdmin(BaseAdmin):
     list_display = (
         'name',
@@ -30,7 +30,7 @@ class TagsAdmin(BaseAdmin):
     list_filter = ('name',)
 
 
-@admin.register(Ingredients)
+@admin.register(Ingredient)
 class IngredientsAdmin(BaseAdmin):
     list_display = (
         'name',
