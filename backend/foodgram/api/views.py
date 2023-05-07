@@ -1,18 +1,19 @@
 # from django.db.models import Avg, QuerySet
-from django.shortcuts import get_object_or_404
+# from django.shortcuts import get_object_or_404
 # from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, status, viewsets, serializers
+from rest_framework import viewsets, status, filters  # , mixins, serializers
 from rest_framework.decorators import action
 # from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated  # , AllowAny
 from rest_framework.response import Response
-from rest_framework.views import APIView
+# from rest_framework.views import APIView
 from djoser.views import UserViewSet
 
 from users.models import User
 from recipes.models import Ingredient, Tag, Recipe
-from core.utils import CustomPagination
-from api.serializers import CustomUserSerializer, IngredientSerializer, TagSerializer
+from core.utils import CustomLimitPagination
+from api.serializers import (CustomUserSerializer, IngredientSerializer,
+                             TagSerializer, RecipeSerializer)
 from api.permissions import IsAdminOrReadOnly
 # from .filters import TitleFilter
 # from .permissions import (IsAdminOrReadOnly, IsAdminOrSuperUser,
@@ -22,11 +23,16 @@ from api.permissions import IsAdminOrReadOnly
 class CustomUsersViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    pagination_class = CustomPagination
+    pagination_class = CustomLimitPagination
     http_method_names = ['get', 'post']
-    # lookup_field = 'username'
-    # filter_backends = (SearchFilter,)
-    # search_fields = ('username',)
+
+    @action(detail=False, methods=['get'],
+            pagination_class=None,
+            permission_classes=(IsAuthenticated,))
+    def me(self, request):
+        serializer = CustomUserSerializer(request.user)
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK)
 
     # @action(
     #     methods=['get'],
@@ -43,12 +49,21 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (IsAdminOrReadOnly,)
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    pagination_class = CustomLimitPagination
+
 
 # class GenresViewSet(CRDViewSet):
 #     queryset = Genre.objects.all()

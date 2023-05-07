@@ -28,12 +28,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
+    # 'django_filters',
     'sorl.thumbnail',
+    # 'corsheaders',    # удали
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'corsheaders.middleware.CorsMiddleware',   #  удали
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -71,12 +74,11 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
-    # 'SERIALIZERS': {
-    #     'set_password': 'djoser.serializers.SetPasswordSerializer',
-    # },
-    # 'SERIALIZERS': {
-    #     'set_password': 'api.serializers.CustomSetPasswordSerializer',
-    # },
+    'SERIALIZERS': {
+        'user_create': 'api.serializers.CustomUserCreateSerializer',
+        'user': 'api.serializers.CustomUserSerializer',
+        'current_user': 'api.serializers.CustomUserSerializer',
+    },
     'PERMISSIONS': {
         'user': ['api.permissions.IsAdminOrReadOnly'],
         'user_list': ['rest_framework.permissions.AllowAny'],
@@ -123,8 +125,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# PAGE_SIZE = 10
-
 NUMCATECHARS = 15
 
 MEDIA_URL = '/media/'
@@ -134,3 +134,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 AUTH_USER_MODEL = 'users.User'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+# CORS_URLS_REGEX = r'^/api/.*$'   #  удали
+# CORS_ALLOWED_ORIGINS = [
+#     'http://host.docker.internal:host-gateway',
+# ]

@@ -6,25 +6,25 @@ from core.models import DefaultModel
 
 class User(AbstractUser):
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
     email = models.EmailField(
+        'электронная почта',
         unique=True,
         max_length=254,
-        verbose_name='Электронная почта',
     )
     username = models.CharField(
+        'Имя пользователя',
         unique=True,
         max_length=150,
-        verbose_name='Имя пользователя',
     )
-
-    def __str__(self):
-        return self.username
 
     class Meta:
         ordering = ['id']
         verbose_name = 'пользователь'
         verbose_name_plural = 'пользователи'
+
+    def __str__(self):
+        return self.username
 
 
 class Follow(DefaultModel):
@@ -48,8 +48,8 @@ class Follow(DefaultModel):
             fields=['user', 'author'],
             name='unique_follow',
         )
-        verbose_name = 'подписчик'
-        verbose_name_plural = 'подписчики'
+        verbose_name = 'подписка'
+        verbose_name_plural = 'подписки'
 
     def __str__(self) -> str:
-        return f'{self.user.username} подписан на {self.author.username}'
+        return f'{self.user} подписан на {self.author}'
