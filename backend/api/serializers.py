@@ -10,7 +10,7 @@ from djoser.serializers import UserSerializer, UserCreateSerializer
 # from rest_framework.validators import UniqueValidator
 
 from users.models import User, Follow
-from recipes.models import Ingredient, Tag, Recipe
+from recipes.models import Ingredient, Tag, Recipe, IngredientAmount
 
 
 class CustomUserSerializer(UserSerializer):
@@ -19,17 +19,22 @@ class CustomUserSerializer(UserSerializer):
     class Meta:
         model = User
         fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
+            "email",
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
         )
 
     def get_is_subscribed(self, obj):
-        if (self.context.get('request') and not self.context['request'].user.is_anonymous):
-            return Follow.objects.filter(user=self.context['request'].user, author=obj).exists()
+        if (
+            self.context.get("request")
+            and not self.context["request"].user.is_anonymous
+        ):
+            return Follow.objects.filter(
+                user=self.context["request"].user, author=obj
+            ).exists()
         return False
 
 
@@ -62,10 +67,16 @@ class TagSerializer(ModelSerializer):
         fields = ('id', 'name', 'color', 'slug')
 
 
+class IngredientAmountSerializer(ModelSerializer):
+    class Meta:
+        model = IngredientAmount
+        fields = ('id', 'name')
+
+
 class RecipeSerializer(ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
-    # ingredients = SerializerMethodField()
+    ingredients = IngredientAmountSerializer(many=True, read_only=True)  # SerializerMethodField()
     # # image = Base64ImageField()
     # is_favorited = SerializerMethodField(read_only=True)
     # is_in_shopping_cart = SerializerMethodField(read_only=True)
@@ -77,23 +88,13 @@ class RecipeSerializer(ModelSerializer):
             'tags',
             'author',
             'ingredients',
-        #     'is_favorited',
-        #     'is_in_shopping_cart',
+            #     'is_favorited',
+            #     'is_in_shopping_cart',
             'name',
-        #     'image',
+            #     'image',
             'text',
-        #     'cooking_time',
+            'cooking_time',
         )
-
-
-# class GenresSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Genre
-#         exclude = ['id', ]
-#         lookup_field = 'slug'
-#         extra_kwargs = {
-#             'url': {'lookup_field': 'slug'}
-#         }
 
 
 # class CategorySerializer(serializers.ModelSerializer):
@@ -134,33 +135,6 @@ class RecipeSerializer(ModelSerializer):
 #     class Meta:
 #         fields = '__all__'
 #         model = Title
-
-
-# class AuthSignupSerializer(serializers.ModelSerializer):
-#     username = serializers.RegexField(r"^[\w.@+-]+\Z$", max_length=150)
-#     email = serializers.EmailField(required=True, max_length=254)
-
-#     class Meta:
-#         model = User
-#         fields = ('email', 'username')
-
-#     def validate(self, data):
-#         if data['username'].lower() == 'me':
-#             raise serializers.ValidationError(
-#                 'Использовано недопустимое имя пользователя'
-#             )
-#         email_user = User.objects.filter(email=data['email']).first()
-#         username_user = User.objects.filter(username=data['username']).first()
-
-#         if email_user and email_user.username != data['username']:
-#             raise serializers.ValidationError(
-#                 'Email и username не соответствуют'
-#             )
-#         if username_user and username_user.email != data['email']:
-#             raise serializers.ValidationError(
-#                 'Email и username не соответствуют'
-#             )
-#         return data
 
 
 # class ReviewsSerializer(serializers.ModelSerializer):

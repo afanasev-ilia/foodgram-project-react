@@ -10,10 +10,10 @@ from api.views import (
 
 
 router = DefaultRouter()
-router.register('v1/users', CustomUsersViewSet, basename='users')
-router.register('v1/tags', TagViewSet, basename='tags')
-router.register('v1/ingredients', IngredientViewSet, basename='ingredients')
-router.register('v1/recipes', RecipeViewSet, basename='recipes')
+router.register('users', CustomUsersViewSet, basename='users')
+router.register('tags', TagViewSet, basename='tags')
+router.register('ingredients', IngredientViewSet, basename='ingredients')
+router.register('recipes', RecipeViewSet, basename='recipes')
 # router.register(
 #     'v1/titles/(?P<title_id>[0-9]+)/reviews',
 #     ReviewsViewSet,
@@ -27,5 +27,5 @@ router.register('v1/recipes', RecipeViewSet, basename='recipes')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('v1/auth/', include('djoser.urls.authtoken')),
+    path('auth/', include('djoser.urls.authtoken')),
 ]

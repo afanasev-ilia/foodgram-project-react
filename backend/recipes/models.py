@@ -63,7 +63,6 @@ class Recipe(DefaultModel):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipes',
         verbose_name='автор',
         help_text='укажите автора',
     )
@@ -89,7 +88,6 @@ class Recipe(DefaultModel):
     )
     tags = models.ManyToManyField(
         Tag,
-        related_name='recipes',
         verbose_name='теги',
         help_text='выберите теги',
     )
@@ -102,6 +100,7 @@ class Recipe(DefaultModel):
     )
 
     class Meta:
+        default_related_name = 'recipes'
         verbose_name = 'рецепт'
         verbose_name_plural = 'рецепты'
 
@@ -113,14 +112,12 @@ class IngredientAmount(DefaultModel):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='ingredient_amount',
         verbose_name='рецепт',
         help_text='укажите рецепт',
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredient_amount',
         verbose_name='ингредиент',
         help_text='укажите ингредиент',
     )
@@ -132,6 +129,7 @@ class IngredientAmount(DefaultModel):
     )
 
     class Meta:
+        default_related_name = 'ingredient_amount'
         verbose_name = 'Количеcтво ингредиента в рецепте'
         verbose_name_plural = 'Количеcтво ингредиента в рецепте'
 
@@ -193,4 +191,6 @@ class ShoppingList(DefaultModel):
         verbose_name_plural = 'список покупок'
 
     def __str__(self) -> str:
-        return f'{self.recipe} добавлен в список покупок пользователя {self.user}'
+        return (
+            f'{self.recipe} добавлен в список покупок пользователя {self.user}'
+        )

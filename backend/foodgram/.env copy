@@ -1,0 +1,7 @@
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=foodgram_db
+POSTGRES_USER=iliaia
+POSTGRES_PASSWORD=Aii412596
+DB_HOST=localhost
+DB_PORT=5432
+SECRET_KEY ='lyzc0^vxf*(0ns9=p03=%hren)sa!rv&2bz-aiw5ed+#qx0lu1'

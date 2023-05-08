@@ -8,16 +8,12 @@ from recipes.models import (Tag, Ingredient, Recipe, IngredientAmount,
 @admin.register(Recipe)
 class RecipesAdmin(BaseAdmin):
     list_display = (
-        'pk',
+        'id',
         'author',
         'name',
-        'image',
-        'text',
-        'cooking_time',
     )
-    list_editable = ('text',)
-    search_fields = ('text',)
-    list_filter = ('text',)
+    search_fields = ('name',)
+    list_filter = ('author','name','tags',)
     filter_horizontal = ('ingredients', 'tags',)
 
 
