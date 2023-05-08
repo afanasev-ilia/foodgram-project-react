@@ -30,13 +30,11 @@ INSTALLED_APPS = [
     'djoser',
     # 'django_filters',
     'sorl.thumbnail',
-    # 'corsheaders',    # удали
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    # 'corsheaders.middleware.CorsMiddleware',   #  удали
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -134,8 +132,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 AUTH_USER_MODEL = 'users.User'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-
-# CORS_URLS_REGEX = r'^/api/.*$'   #  удали
-# CORS_ALLOWED_ORIGINS = [
-#     'http://host.docker.internal:host-gateway',
-# ]

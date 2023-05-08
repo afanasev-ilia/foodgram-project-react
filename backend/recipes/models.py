@@ -140,7 +140,7 @@ class IngredientAmount(DefaultModel):
         )
 
 
-class Favourites(DefaultModel):
+class Favorite(DefaultModel):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -157,9 +157,9 @@ class Favourites(DefaultModel):
     class Meta:
         models.UniqueConstraint(
             fields=['user', 'recipe'],
-            name='unique_favorites',
+            name='unique_favorite',
         )
-        default_related_name = 'favorites'
+        default_related_name = 'favorite'
         verbose_name = 'избранное'
         verbose_name_plural = 'избранное'
 
@@ -167,7 +167,7 @@ class Favourites(DefaultModel):
         return f'{self.recipe} добавлен в избранное пользователя {self.user}'
 
 
-class ShoppingList(DefaultModel):
+class ShoppingCart(DefaultModel):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -184,9 +184,9 @@ class ShoppingList(DefaultModel):
     class Meta:
         models.UniqueConstraint(
             fields=['user', 'recipe'],
-            name='unique_shopping_list',
+            name='unique_shopping_cart',
         )
-        default_related_name = 'shopping_list'
+        default_related_name = 'shopping_cart'
         verbose_name = 'список покупок'
         verbose_name_plural = 'список покупок'
 

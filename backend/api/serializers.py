@@ -1,20 +1,18 @@
 # from django.http import HttpRequest
 # from django.core import exceptions as django_exceptions
-from rest_framework.serializers import (
-    ModelSerializer,
-    CharField,
-    SerializerMethodField,
-)
+from rest_framework import serializers
 from djoser.serializers import UserSerializer, UserCreateSerializer
 # from rest_framework.generics import get_object_or_404
 # from rest_framework.validators import UniqueValidator
+import base64
+from django.core.files.base import ContentFile
 
 from users.models import User, Follow
 from recipes.models import Ingredient, Tag, Recipe, IngredientAmount
 
 
 class CustomUserSerializer(UserSerializer):
-    is_subscribed = SerializerMethodField(read_only=True)
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -32,16 +30,16 @@ class CustomUserSerializer(UserSerializer):
             self.context.get("request")
             and not self.context["request"].user.is_anonymous
         ):
-            return Follow.objects.filter(
+            return Follow.objects.select_related('user', 'author').filter(
                 user=self.context["request"].user, author=obj
             ).exists()
         return False
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
-    first_name = CharField(required=True)
-    last_name = CharField(required=True)
-    email = CharField(required=True)
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
+    email = serializers.CharField(required=True)
 
     class Meta:
         model = User
@@ -55,31 +53,51 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         )
 
 
-class IngredientSerializer(ModelSerializer):
+class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('name', 'measurement_unit')
 
 
-class TagSerializer(ModelSerializer):
+class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug')
 
 
-class IngredientAmountSerializer(ModelSerializer):
+class IngredientAmountSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit',
+    )
+
     class Meta:
         model = IngredientAmount
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
-class RecipeSerializer(ModelSerializer):
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format, imgstr = data.split(';base64,')
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+
+        return super().to_internal_value(data)
+
+
+class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
-    ingredients = IngredientAmountSerializer(many=True, read_only=True)  # SerializerMethodField()
-    # # image = Base64ImageField()
-    # is_favorited = SerializerMethodField(read_only=True)
-    # is_in_shopping_cart = SerializerMethodField(read_only=True)
+    ingredients = IngredientAmountSerializer(
+        many=True,
+        read_only=True,
+        source='ingredient_amount',
+    )
+    image = Base64ImageField()
+    is_favorited = serializers.SerializerMethodField(read_only=True)
+    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -88,13 +106,25 @@ class RecipeSerializer(ModelSerializer):
             'tags',
             'author',
             'ingredients',
-            #     'is_favorited',
-            #     'is_in_shopping_cart',
+            'is_favorited',
+            'is_in_shopping_cart',
             'name',
-            #     'image',
+            'image',
             'text',
             'cooking_time',
         )
+
+    def get_is_favorited(self, obj):
+        user = self.context['request'].user
+        if user.is_anonymous:
+            return False
+        return user.favorite.select_related('user', 'recipes').filter(recipe=obj).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context['request'].user
+        if user.is_anonymous:
+            return False
+        return user.shopping_cart.select_related('user', 'recipes').filter(recipe=obj).exists()
 
 
 # class CategorySerializer(serializers.ModelSerializer):

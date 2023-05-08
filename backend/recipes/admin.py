@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from core.admin import BaseAdmin
 from recipes.models import (Tag, Ingredient, Recipe, IngredientAmount,
-                            Favourites, ShoppingList)
+                            Favorite, ShoppingCart)
 
 
 @admin.register(Recipe)
@@ -13,7 +13,7 @@ class RecipesAdmin(BaseAdmin):
         'name',
     )
     search_fields = ('name',)
-    list_filter = ('author','name','tags',)
+    list_filter = ('author', 'name', 'tags',)
     filter_horizontal = ('ingredients', 'tags',)
 
 
@@ -48,7 +48,7 @@ class IngredientAmountAdmin(BaseAdmin):
     )
 
 
-@admin.register(Favourites)
+@admin.register(Favorite)
 class FavouritesAdmin(BaseAdmin):
     list_display = (
         'user',
@@ -56,7 +56,7 @@ class FavouritesAdmin(BaseAdmin):
     )
 
 
-@admin.register(ShoppingList)
+@admin.register(ShoppingCart)
 class ShoppingListAdmin(BaseAdmin):
     list_display = (
         'user',
