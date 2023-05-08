@@ -11,9 +11,9 @@ from djoser.views import UserViewSet
 
 from users.models import User
 from recipes.models import Ingredient, Tag, Recipe
-from core.utils import CustomLimitPagination
+from core.utils import CustomPageNumberPagination
 from api.serializers import (CustomUserSerializer, IngredientSerializer,
-                             TagSerializer, RecipeSerializer)
+                             TagSerializer, RecipeSerializer, FollowSerializer)
 from api.permissions import IsAdminOrReadOnly
 # from .filters import TitleFilter
 # from .permissions import (IsAdminOrReadOnly, IsAdminOrSuperUser,
@@ -23,7 +23,7 @@ from api.permissions import IsAdminOrReadOnly
 class CustomUsersViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    pagination_class = CustomLimitPagination
+    pagination_class = CustomPageNumberPagination
     http_method_names = ['get', 'post']
 
     @action(detail=False, methods=['get'],
@@ -34,15 +34,20 @@ class CustomUsersViewSet(UserViewSet):
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
 
-    # @action(
-    #     methods=['get'],
-    #     detail=False,
-    #     permission_classes=(IsAuthenticated, ),
-    #     url_path='subscriptions',
-    # )
-    # def get_subscriptions(self, request):
-    #     serializer = CustomUserSerializer(request.user)
-    #     return Response(serializer.data)
+    @action(
+        methods=['get'],
+        detail=False,
+        permission_classes=(IsAuthenticated, )
+    )
+    def subscriptions(self, request):
+        following = User.objects.filter(following__user=request.user)
+        results = self.paginate_queryset(following)
+        serializer = FollowSerializer(
+            results,
+            many=True,
+            context={'request': request},
+        )
+        return self.get_paginated_response(serializer.data)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -62,7 +67,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    pagination_class = CustomLimitPagination
+    pagination_class = CustomPageNumberPagination
 
 
 # class GenresViewSet(CRDViewSet):

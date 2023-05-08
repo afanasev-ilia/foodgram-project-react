@@ -8,8 +8,8 @@ from django.conf import settings
 from rest_framework.pagination import PageNumberPagination
 
 
-class CustomLimitPagination(PageNumberPagination):
-    page_size_query_param = "limit"
+class CustomPageNumberPagination(PageNumberPagination):
+    page_size_query_param = 'limit'
 
 
 def truncatechars(chars: str, chars_limit: int = settings.NUMCATECHARS) -> str:

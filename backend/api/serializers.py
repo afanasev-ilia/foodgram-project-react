@@ -7,7 +7,7 @@ from djoser.serializers import UserSerializer, UserCreateSerializer
 import base64
 from django.core.files.base import ContentFile
 
-from users.models import User, Follow
+from users.models import User
 from recipes.models import Ingredient, Tag, Recipe, IngredientAmount
 
 
@@ -17,22 +17,25 @@ class CustomUserSerializer(UserSerializer):
     class Meta:
         model = User
         fields = (
-            "email",
-            "id",
-            "username",
-            "first_name",
-            "last_name",
-            "is_subscribed",
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
         )
 
     def get_is_subscribed(self, obj):
         if (
-            self.context.get("request")
-            and not self.context["request"].user.is_anonymous
+            self.context.get('request')
+            and not self.context.get('request').user.is_anonymous
         ):
-            return Follow.objects.select_related('user', 'author').filter(
-                user=self.context["request"].user, author=obj
-            ).exists()
+            return (
+                self.context.get('request')
+                .user.follower.select_related('following')
+                .filter(author=obj)
+                .exists()
+            )
         return False
 
 
@@ -115,16 +118,64 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        user = self.context['request'].user
-        if user.is_anonymous:
+        if self.context.get('request').user.is_anonymous:
             return False
-        return user.favorite.select_related('user', 'recipes').filter(recipe=obj).exists()
+        return (
+            self.context.get('request')
+            .user.favorite.select_related('recipe')
+            .filter(recipe=obj)
+            .exists()
+        )
 
     def get_is_in_shopping_cart(self, obj):
-        user = self.context['request'].user
-        if user.is_anonymous:
+        if self.context.get('request').user.is_anonymous:
             return False
-        return user.shopping_cart.select_related('user', 'recipes').filter(recipe=obj).exists()
+        return (
+            self.context.get('request')
+            .user.shopping_cart.select_related('recipe')
+            .filter(recipe=obj)
+            .exists()
+        )
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('email', 'id',
+                  'username', 'first_name',
+                  'last_name', 'is_subscribed',
+                  'recipes', 'recipes_count')
+
+    def get_is_subscribed(self, obj):
+        return (
+            self.context.get('request')
+            .user.follower.select_related('following')
+            .filter(author=obj)
+            .exists()
+        )
+
+    def get_recipes(self, obj):
+        recipes = obj.recipes.select_related('author')
+        limit = self.context.get('request').GET.get('recipes_limit')
+        if limit:
+            recipes = recipes[:int(limit)]
+        return RecipeFollowSerializer(recipes, many=True).data
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
+
+
+class RecipeFollowSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name',
+                  'image', 'cooking_time')
 
 
 # class CategorySerializer(serializers.ModelSerializer):
@@ -138,7 +189,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 # class TitleSerializerRead(serializers.ModelSerializer):
-#     """Сериализатор для работы с title при LIST/RETRIEVE."""
+#     '''Сериализатор для работы с title при LIST/RETRIEVE.'''
 #     category = CategorySerializer(read_only=True)
 #     genre = GenresSerializer(many=True, read_only=True)
 #     rating = serializers.IntegerField(
@@ -151,7 +202,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 # class TitleSerializerCreate(serializers.ModelSerializer):
-#     """Сериализатор для работы с title при POST/PUT/PATCH."""
+#     '''Сериализатор для работы с title при POST/PUT/PATCH.'''
 #     category = serializers.SlugRelatedField(
 #         queryset=Category.objects.all(),
 #         slug_field='slug'
