@@ -1,20 +1,29 @@
 # from django.db.models import Avg, QuerySet
 from django.shortcuts import get_object_or_404
-# from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status, filters  # , mixins, serializers
-from rest_framework.decorators import action
-# from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated  # , AllowAny
-from rest_framework.response import Response
+
 # from rest_framework.views import APIView
 from djoser.views import UserViewSet
 
-from users.models import User, Follow
-from recipes.models import Ingredient, Tag, Recipe
-from core.utils import CustomPageNumberPagination
-from api.serializers import (CustomUserSerializer, IngredientSerializer,
-                             TagSerializer, RecipeSerializer, FollowSerializer)
+# from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status, viewsets  # , mixins, serializers
+from rest_framework.decorators import action
+
+# from rest_framework.filters import SearchFilter
+from rest_framework.permissions import IsAuthenticated  # , AllowAny
+from rest_framework.response import Response
+
 from api.permissions import IsAdminOrReadOnly
+from api.serializers import (
+    CustomUserSerializer,
+    FollowSerializer,
+    IngredientSerializer,
+    RecipeSerializer,
+    TagSerializer,
+)
+from core.utils import CustomPageNumberPagination
+from recipes.models import Ingredient, Recipe, Tag
+from users.models import Follow, User
+
 # from .filters import TitleFilter
 # from .permissions import (IsAdminOrReadOnly, IsAdminOrSuperUser,
 #                           IsAuthorOrModeratorOrAdminOrSuperuser)
@@ -26,18 +35,18 @@ class CustomUsersViewSet(UserViewSet):
     pagination_class = CustomPageNumberPagination
     http_method_names = ['get', 'post', 'delete']
 
-    @action(detail=False, methods=['get'],
-            pagination_class=None,
-            permission_classes=(IsAuthenticated,))
+    @action(
+        detail=False,
+        methods=['get'],
+        pagination_class=None,
+        permission_classes=(IsAuthenticated,),
+    )
     def me(self, request):
         serializer = CustomUserSerializer(request.user)
-        return Response(serializer.data,
-                        status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
-        methods=['get'],
-        detail=False,
-        permission_classes=(IsAuthenticated, )
+        methods=['get'], detail=False, permission_classes=(IsAuthenticated,)
     )
     def subscriptions(self, request):
         following = User.objects.filter(following__user=request.user)
@@ -52,7 +61,7 @@ class CustomUsersViewSet(UserViewSet):
     @action(
         detail=True,
         methods=['post', 'delete'],
-        permission_classes=(IsAuthenticated,)
+        permission_classes=(IsAuthenticated,),
     )
     def subscribe(self, request, id):
         user = request.user

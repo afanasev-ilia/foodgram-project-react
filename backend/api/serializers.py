@@ -1,16 +1,16 @@
 # from django.http import HttpRequest
 # from django.core import exceptions as django_exceptions
-from rest_framework import serializers
-from rest_framework import status
-from rest_framework.exceptions import ValidationError
-from djoser.serializers import UserSerializer, UserCreateSerializer
 # from rest_framework.generics import get_object_or_404
 # from rest_framework.validators import UniqueValidator
 import base64
-from django.core.files.base import ContentFile
 
-from users.models import User, Follow
-from recipes.models import Ingredient, Tag, Recipe, IngredientAmount
+from django.core.files.base import ContentFile
+from djoser.serializers import UserCreateSerializer, UserSerializer
+from rest_framework import serializers, status
+from rest_framework.exceptions import ValidationError
+
+from recipes.models import Ingredient, IngredientAmount, Recipe, Tag
+from users.models import Follow, User
 
 
 class CustomUserSerializer(UserSerializer):
@@ -147,10 +147,16 @@ class FollowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id',
-                  'username', 'first_name',
-                  'last_name', 'is_subscribed',
-                  'recipes', 'recipes_count')
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count',
+        )
         read_only_fields = ('email', 'username')
 
     def get_is_subscribed(self, obj):
@@ -165,7 +171,7 @@ class FollowSerializer(serializers.ModelSerializer):
         recipes = obj.recipes.select_related('author')
         limit = self.context.get('request').GET.get('recipes_limit')
         if limit:
-            recipes = recipes[:int(limit)]
+            recipes = recipes[: int(limit)]
         return RecipeFollowSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
@@ -177,12 +183,12 @@ class FollowSerializer(serializers.ModelSerializer):
         if Follow.objects.filter(author=author, user=user).exists():
             raise ValidationError(
                 detail='Вы уже подписаны на этого пользователя!',
-                code=status.HTTP_400_BAD_REQUEST
+                code=status.HTTP_400_BAD_REQUEST,
             )
         if user == author:
             raise ValidationError(
                 detail='Вы не можете подписаться на самого себя!',
-                code=status.HTTP_400_BAD_REQUEST
+                code=status.HTTP_400_BAD_REQUEST,
             )
         return data
 
@@ -192,8 +198,7 @@ class RecipeFollowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name',
-                  'image', 'cooking_time')
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 
 # class CategorySerializer(serializers.ModelSerializer):

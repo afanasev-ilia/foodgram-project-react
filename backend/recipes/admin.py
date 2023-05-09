@@ -1,8 +1,14 @@
 from django.contrib import admin
 
 from core.admin import BaseAdmin
-from recipes.models import (Tag, Ingredient, Recipe, IngredientAmount,
-                            Favorite, ShoppingCart)
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    IngredientAmount,
+    Recipe,
+    ShoppingCart,
+    Tag,
+)
 
 
 @admin.register(Recipe)
@@ -13,8 +19,15 @@ class RecipesAdmin(BaseAdmin):
         'name',
     )
     search_fields = ('name',)
-    list_filter = ('author', 'name', 'tags',)
-    filter_horizontal = ('ingredients', 'tags',)
+    list_filter = (
+        'author',
+        'name',
+        'tags',
+    )
+    filter_horizontal = (
+        'ingredients',
+        'tags',
+    )
 
 
 @admin.register(Tag)

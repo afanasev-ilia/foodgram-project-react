@@ -1,18 +1,22 @@
-from rest_framework import permissions, viewsets
+from typing import Any
+
 from django.http import HttpRequest
+from rest_framework import permissions, viewsets
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
-    """
-    Права админа или только на чтение
-    """
-    def has_permission(self, request, view):
-        return (request.method in permissions.SAFE_METHODS
-                or (request.user.is_authenticated
-                    and request.user.is_staff))
-    
+    def has_permission(
+        self,
+        request: HttpRequest,
+        unused: viewsets,
+    ) -> bool:
+        del unused
+        return request.method in permissions.SAFE_METHODS or (
+            request.user.is_authenticated and request.user.is_staff
+        )
 
-class IsAuthorOrModeratorOrAdminOrSuperuser(permissions.BasePermission):
+
+class IsAuthorOrAdminOrSuperuser(permissions.BasePermission):
     def has_permission(
         self,
         request: HttpRequest,
@@ -28,16 +32,16 @@ class IsAuthorOrModeratorOrAdminOrSuperuser(permissions.BasePermission):
         self,
         request: HttpRequest,
         unused: viewsets,
-        obj, # : Any,
+        obj: Any,
     ) -> bool:
         del unused
         return (
             request.method in permissions.SAFE_METHODS
             or obj.author == request.user
-            or request.user.is_admin
+            or request.user.is_staff
             or request.user.is_superuser
-            or request.user.is_moderator
         )
+
 
 # class IsOwnerOrReadOnly(permissions.BasePermission):
 #     """

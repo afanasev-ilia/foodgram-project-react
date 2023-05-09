@@ -1,14 +1,14 @@
-from django.db import connection, reset_queries
-import time
 import functools
+import time
+
+from django.db import connection, reset_queries
+
 
 def query_debugger(func):
-
     @functools.wraps(func)
     def inner_func(*args, **kwargs):
-
         reset_queries()
-        
+
         start_queries = len(connection.queries)
 
         start = time.perf_counter()
