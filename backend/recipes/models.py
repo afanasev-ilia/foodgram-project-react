@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from core.models import DefaultModel
+from core.models import DefaultModel, TimestampedModel
 from core.utils import truncatechars
 
 User = get_user_model()
@@ -59,7 +59,7 @@ class Ingredient(DefaultModel):
         return truncatechars(self.name, settings.NUMCATECHARS)
 
 
-class Recipe(DefaultModel):
+class Recipe(TimestampedModel):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

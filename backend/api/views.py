@@ -60,7 +60,10 @@ class CustomUsersViewSet(UserViewSet):
 
         if request.method == 'POST':
             serializer = FollowSerializer(
-                author, data=request.data, context={"request": request})
+                author,
+                data=request.data,
+                context={"request": request},
+            )
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
