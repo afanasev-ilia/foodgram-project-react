@@ -1,13 +1,15 @@
 # from django.http import HttpRequest
 # from django.core import exceptions as django_exceptions
 from rest_framework import serializers
+from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from djoser.serializers import UserSerializer, UserCreateSerializer
 # from rest_framework.generics import get_object_or_404
 # from rest_framework.validators import UniqueValidator
 import base64
 from django.core.files.base import ContentFile
 
-from users.models import User
+from users.models import User, Follow
 from recipes.models import Ingredient, Tag, Recipe, IngredientAmount
 
 
@@ -149,6 +151,7 @@ class FollowSerializer(serializers.ModelSerializer):
                   'username', 'first_name',
                   'last_name', 'is_subscribed',
                   'recipes', 'recipes_count')
+        read_only_fields = ('email', 'username')
 
     def get_is_subscribed(self, obj):
         return (
@@ -167,6 +170,21 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
+
+    def validate(self, data):
+        author = self.instance
+        user = self.context.get('request').user
+        if Follow.objects.filter(author=author, user=user).exists():
+            raise ValidationError(
+                detail='Вы уже подписаны на этого пользователя!',
+                code=status.HTTP_400_BAD_REQUEST
+            )
+        if user == author:
+            raise ValidationError(
+                detail='Вы не можете подписаться на самого себя!',
+                code=status.HTTP_400_BAD_REQUEST
+            )
+        return data
 
 
 class RecipeFollowSerializer(serializers.ModelSerializer):

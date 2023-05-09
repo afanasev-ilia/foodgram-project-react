@@ -1,5 +1,5 @@
 # from django.db.models import Avg, QuerySet
-# from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404
 # from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, filters  # , mixins, serializers
 from rest_framework.decorators import action
@@ -9,7 +9,7 @@ from rest_framework.response import Response
 # from rest_framework.views import APIView
 from djoser.views import UserViewSet
 
-from users.models import User
+from users.models import User, Follow
 from recipes.models import Ingredient, Tag, Recipe
 from core.utils import CustomPageNumberPagination
 from api.serializers import (CustomUserSerializer, IngredientSerializer,
@@ -24,7 +24,7 @@ class CustomUsersViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     pagination_class = CustomPageNumberPagination
-    http_method_names = ['get', 'post']
+    http_method_names = ['get', 'post', 'delete']
 
     @action(detail=False, methods=['get'],
             pagination_class=None,
@@ -48,6 +48,27 @@ class CustomUsersViewSet(UserViewSet):
             context={'request': request},
         )
         return self.get_paginated_response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=(IsAuthenticated,)
+    )
+    def subscribe(self, request, id):
+        user = request.user
+        author = get_object_or_404(User, id=id)
+
+        if request.method == 'POST':
+            serializer = FollowSerializer(
+                author, data=request.data, context={"request": request})
+            serializer.is_valid(raise_exception=True)
+            Follow.objects.create(user=user, author=author)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            subscription = get_object_or_404(Follow, user=user, author=author)
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
