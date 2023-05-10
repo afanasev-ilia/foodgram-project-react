@@ -9,7 +9,7 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 
-from recipes.models import Ingredient, IngredientAmount, Recipe, Tag
+from recipes.models import Ingredient, IngredientAmount, Recipe, Tag, Favorite
 from users.models import Follow, User
 
 
@@ -140,6 +140,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
 
+class RecipeCreateSerializer(serializers.ModelSerializer):
+    pass
+
+
 class FollowSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
@@ -172,7 +176,7 @@ class FollowSerializer(serializers.ModelSerializer):
         limit = self.context.get('request').GET.get('recipes_limit')
         if limit:
             recipes = recipes[: int(limit)]
-        return RecipeFollowSerializer(recipes, many=True).data
+        return RecipeFollowFavoriteSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -193,12 +197,24 @@ class FollowSerializer(serializers.ModelSerializer):
         return data
 
 
-class RecipeFollowSerializer(serializers.ModelSerializer):
-    image = Base64ImageField()
+class RecipeFollowFavoriteSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(read_only=True)
+    image = Base64ImageField(read_only=True)
+    cooking_time = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
+
+    def validate(self, data):
+        recipe = self.instance
+        user = self.context.get('request').user
+        if Favorite.objects.filter(recipe=recipe, user=user).exists():
+            raise ValidationError(
+                detail='Рецепт уже есть в избранном',
+                code=status.HTTP_400_BAD_REQUEST,
+            )
+        return data
 
 
 # class CategorySerializer(serializers.ModelSerializer):

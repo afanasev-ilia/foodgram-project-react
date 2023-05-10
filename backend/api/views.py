@@ -1,4 +1,5 @@
 # from django.db.models import Avg, QuerySet
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 
 # from rest_framework.views import APIView
@@ -9,19 +10,21 @@ from rest_framework import filters, status, viewsets  # , mixins, serializers
 from rest_framework.decorators import action
 
 # from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated  # , AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.permissions import IsAdminOrReadOnly
+from api.permissions import IsAdminOrReadOnly, IsAuthorOrAdminOrSuperuser
 from api.serializers import (
     CustomUserSerializer,
     FollowSerializer,
     IngredientSerializer,
+    RecipeCreateSerializer,
+    RecipeFollowFavoriteSerializer,
     RecipeSerializer,
     TagSerializer,
 )
 from core.utils import CustomPageNumberPagination
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
 
 # from .filters import TitleFilter
@@ -64,22 +67,24 @@ class CustomUsersViewSet(UserViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def subscribe(self, request, id):
-        user = request.user
         author = get_object_or_404(User, id=id)
 
         if request.method == 'POST':
             serializer = FollowSerializer(
                 author,
                 data=request.data,
-                context={"request": request},
+                context={'request': request},
             )
             serializer.is_valid(raise_exception=True)
-            Follow.objects.create(user=user, author=author)
+            Follow.objects.create(user=request.user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            subscription = get_object_or_404(Follow, user=user, author=author)
-            subscription.delete()
+            get_object_or_404(
+                Follow,
+                user=request.user,
+                author=author,
+            ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -99,8 +104,48 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
     pagination_class = CustomPageNumberPagination
+    permission_classes = (IsAuthorOrAdminOrSuperuser,)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return RecipeSerializer
+        return RecipeCreateSerializer
+
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=(IsAuthenticated,),
+    )
+    def favorite(self, request, pk):
+        recipe = get_object_or_404(Recipe, pk=pk)
+
+        if request.method == 'POST':
+            serializer = RecipeFollowFavoriteSerializer(
+                recipe,
+                data=request.data,
+                context={'request': request},
+            )
+            serializer.is_valid(raise_exception=True)
+            Favorite.objects.create(user=request.user, recipe=recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            try:
+                get_object_or_404(
+                    Favorite,
+                    user=request.user,
+                    recipe=recipe,
+                ).delete()
+            except Http404:
+                return Response(
+                    {'detail': 'Рецепта нет в избранном'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # class GenresViewSet(CRDViewSet):
