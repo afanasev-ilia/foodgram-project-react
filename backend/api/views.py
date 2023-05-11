@@ -14,6 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
+from api.filters import RecipeFilter
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrAdminOrSuperuser
 from api.serializers import (
     CustomUserSerializer,
@@ -105,11 +106,11 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
+    queryset = Recipe.objects.all().order_by('-created')
     pagination_class = CustomPageNumberPagination
     permission_classes = (IsAuthorOrAdminOrSuperuser,)
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('tags__slug',)  # 'is_favorited''is_in_shopping_cart'
+    filterset_class = RecipeFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
