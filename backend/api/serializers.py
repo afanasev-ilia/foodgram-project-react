@@ -9,7 +9,14 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 
-from recipes.models import Ingredient, IngredientAmount, Recipe, Tag, Favorite
+from recipes.models import (
+    Ingredient,
+    IngredientAmount,
+    Recipe,
+    Tag,
+    Favorite,
+    ShoppingCart,
+)
 from users.models import Follow, User
 
 
@@ -176,7 +183,7 @@ class FollowSerializer(serializers.ModelSerializer):
         limit = self.context.get('request').GET.get('recipes_limit')
         if limit:
             recipes = recipes[: int(limit)]
-        return RecipeFollowFavoriteSerializer(recipes, many=True).data
+        return RecipeFollowSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -197,7 +204,7 @@ class FollowSerializer(serializers.ModelSerializer):
         return data
 
 
-class RecipeFollowFavoriteSerializer(serializers.ModelSerializer):
+class RecipeFollowSerializer(serializers.ModelSerializer):
     name = serializers.CharField(read_only=True)
     image = Base64ImageField(read_only=True)
     cooking_time = serializers.IntegerField(read_only=True)
@@ -205,6 +212,9 @@ class RecipeFollowFavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class RecipeFavoriteSerializer(RecipeFollowSerializer):
 
     def validate(self, data):
         recipe = self.instance
@@ -217,6 +227,17 @@ class RecipeFollowFavoriteSerializer(serializers.ModelSerializer):
         return data
 
 
+class RecipeShoppingCartSerializer(RecipeFollowSerializer):
+
+    def validate(self, data):
+        recipe = self.instance
+        user = self.context.get('request').user
+        if ShoppingCart.objects.filter(recipe=recipe, user=user).exists():
+            raise ValidationError(
+                detail='Рецепт уже есть в списке покупок',
+                code=status.HTTP_400_BAD_REQUEST,
+            )
+        return data
 # class CategorySerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Category

@@ -12,6 +12,7 @@ from rest_framework.decorators import action
 # from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrAdminOrSuperuser
 from api.serializers import (
@@ -19,7 +20,8 @@ from api.serializers import (
     FollowSerializer,
     IngredientSerializer,
     RecipeCreateSerializer,
-    RecipeFollowFavoriteSerializer,
+    RecipeShoppingCartSerializer,
+    RecipeFavoriteSerializer,
     RecipeSerializer,
     TagSerializer,
 )
@@ -106,6 +108,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     pagination_class = CustomPageNumberPagination
     permission_classes = (IsAuthorOrAdminOrSuperuser,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('tags__slug',)  # 'is_favorited''is_in_shopping_cart'
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -124,7 +128,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
 
         if request.method == 'POST':
-            serializer = RecipeFollowFavoriteSerializer(
+            serializer = RecipeFavoriteSerializer(
                 recipe,
                 data=request.data,
                 context={'request': request},
@@ -147,69 +151,34 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 )
             return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=(IsAuthenticated,),
+    )
+    def shopping_cart(self, request, pk):
+        recipe = get_object_or_404(Recipe, pk=pk)
 
-# class GenresViewSet(CRDViewSet):
-#     queryset = Genre.objects.all()
-#     serializer_class = GenresSerializer
-#     permission_classes = (IsAdminOrReadOnly,)
-#     filter_backends = (filters.SearchFilter,)
-#     search_fields = ('name',)
-#     lookup_field = 'slug'
+        if request.method == 'POST':
+            serializer = RecipeShoppingCartSerializer(
+                recipe,
+                data=request.data,
+                context={'request': request},
+            )
+            serializer.is_valid(raise_exception=True)
+            ShoppingCart.objects.create(user=request.user, recipe=recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
-# class TitleViewSet(viewsets.ModelViewSet):
-#     queryset = Title.objects.all().annotate(
-#         Avg('reviews__score')
-#     ).order_by('id')
-#     serializer_class = TitleSerializerCreate
-#     permission_classes = (IsAdminOrReadOnly,)
-#     filter_backends = (DjangoFilterBackend,)
-#     filterset_class = TitleFilter
-
-#     def get_serializer_class(self):
-#         if self.request.method in ('POST', 'PATCH', 'DELETE',):
-#             return TitleSerializerCreate
-#         return TitleSerializerRead
-
-
-# class CategoryViewSet(CRDViewSet):
-#     queryset = Category.objects.all()
-#     serializer_class = CategorySerializer
-#     filter_backends = (filters.SearchFilter,)
-#     search_fields = ('name',)
-#     lookup_field = 'slug'
-#     permission_classes = (IsAdminOrReadOnly,)
-
-
-# class ReviewsViewSet(viewsets.ModelViewSet):
-#     serializer_class = ReviewsSerializer
-#     permission_classes = (IsAuthorOrModeratorOrAdminOrSuperuser,)
-
-#     def get_queryset(self):
-#         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-#         return title.reviews.all()
-
-#     def perform_create(self, serializer):
-#         serializer.save(
-#             author=self.request.user,
-#             title=get_object_or_404(Title, id=self.kwargs.get('title_id'))
-#         )
-
-
-# class CommentsViewSet(viewsets.ModelViewSet):
-#     serializer_class = CommentsSerializer
-#     permission_classes = (IsAuthorOrModeratorOrAdminOrSuperuser,)
-
-#     def get_queryset(self) -> QuerySet:
-#         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-#         return review.comments.select_related('review')
-
-#     def perform_create(self, serializer):
-#         serializer.save(
-#             author=self.request.user,
-#             review=get_object_or_404(
-#                 Review,
-#                 id=self.kwargs.get('review_id'),
-#                 title=self.kwargs.get('title_id'),
-#             )
-#         )
+        if request.method == 'DELETE':
+            try:
+                get_object_or_404(
+                    ShoppingCart,
+                    user=request.user,
+                    recipe=recipe,
+                ).delete()
+            except Http404:
+                return Response(
+                    {'detail': 'Рецепта нет в списке покупок'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return Response(status=status.HTTP_204_NO_CONTENT)

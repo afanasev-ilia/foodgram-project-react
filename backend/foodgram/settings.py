@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='s3cr3t')
 
 ADMIN_EMAIL = 'iafanasevmail@gmail.com'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
-    # 'django_filters',
+    'django_filters',
     'sorl.thumbnail',
 ]
 

@@ -41,37 +41,3 @@ class IsAuthorOrAdminOrSuperuser(permissions.BasePermission):
             or request.user.is_staff
             or request.user.is_superuser
         )
-
-
-# class IsOwnerOrReadOnly(permissions.BasePermission):
-#     """
-#     Custom permission to only allow owners of an object to edit it.
-#     """
-
-#     def has_object_permission(self, request, view, obj):
-#         return (
-#             request.method in permissions.SAFE_METHODS
-#             or obj.owner == request.user
-#         )
-
-
-# class IsSuperUserOrReadOnly(permissions.BasePermission):
-#     """
-#     Права SuperUser или только на чтение
-#     """
-#     def has_object_permission(self, request, view, obj):
-#         if request.method in permissions.SAFE_METHODS:
-#             return True
-#         return request.user.is_superuser
-
-
-# class IsAdminOrSuperUser(permissions.BasePermission):
-#     """
-#     Права админа или суперюзера системы
-#     """
-
-#     def has_permission(self, request, view):
-#         return (
-#             request.user.is_admin
-#             or request.user.is_superuser
-#         )
