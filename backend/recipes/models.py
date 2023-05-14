@@ -133,7 +133,7 @@ class IngredientAmount(DefaultModel):
         verbose_name = 'Количеcтво ингредиента в рецепте'
         verbose_name_plural = 'Количеcтво ингредиента в рецепте'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f'{self.ingredient} ({self.ingredient.measurement_unit})'
             f' - {self.amount} '

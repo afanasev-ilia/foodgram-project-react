@@ -1,6 +1,3 @@
-# from django.http import HttpRequest
-# from django.core import exceptions as django_exceptions
-# from rest_framework.validators import UniqueValidator
 import base64
 
 from django.core.files.base import ContentFile
@@ -33,7 +30,7 @@ class CustomUserSerializer(UserSerializer):
             'is_subscribed',
         )
 
-    def get_is_subscribed(self, obj):
+    def get_is_subscribed(self, obj) -> bool:
         if (
             self.context.get('request')
             and not self.context.get('request').user.is_anonymous
@@ -89,7 +86,7 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
 
 
 class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
+    def to_internal_value(self, data: str):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
             ext = format.split('/')[-1]

@@ -1,8 +1,9 @@
-# from django.db.models import Avg, QuerySet
+from typing import Dict, Union
+
 from django.db.models import Sum
-from django.http import HttpResponse, Http404
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.http import Http404, HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
@@ -22,7 +23,14 @@ from api.serializers import (
     TagSerializer,
 )
 from core.utils import CustomPageNumberPagination
-from recipes.models import Favorite, Ingredient, IngredientAmount, Recipe, ShoppingCart, Tag
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    IngredientAmount,
+    Recipe,
+    ShoppingCart,
+    Tag,
+)
 from users.models import Follow, User
 
 
@@ -38,7 +46,7 @@ class CustomUsersViewSet(UserViewSet):
         pagination_class=None,
         permission_classes=(IsAuthenticated,),
     )
-    def me(self, request):
+    def me(self, request: HttpRequest) -> HttpResponse:
         serializer = CustomUserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -47,7 +55,7 @@ class CustomUsersViewSet(UserViewSet):
         detail=False,
         permission_classes=(IsAuthenticated,),
     )
-    def subscriptions(self, request):
+    def subscriptions(self, request: HttpRequest) -> HttpResponse:
         following = User.objects.filter(following__user=request.user)
         results = self.paginate_queryset(following)
         serializer = FollowSerializer(
@@ -62,7 +70,7 @@ class CustomUsersViewSet(UserViewSet):
         methods=['post', 'delete'],
         permission_classes=(IsAuthenticated,),
     )
-    def subscribe(self, request, id):
+    def subscribe(self, request: HttpRequest, id: int) -> HttpResponse:
         author = get_object_or_404(User, id=id)
 
         if request.method == 'POST':
@@ -107,7 +115,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = CustomRecipeFilter
 
-    def perform_create(self, serializer):
+    def perform_create(
+        self, serializer: Dict[str, Union[str, int, float]],
+    ) -> None:
         serializer.save(author=self.request.user)
 
     def get_serializer_class(self):
@@ -120,7 +130,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         methods=['post', 'delete'],
         permission_classes=(IsAuthenticated,),
     )
-    def favorite(self, request, pk):
+    def favorite(self, request: HttpRequest, pk: int) -> HttpResponse:
         recipe = get_object_or_404(Recipe, pk=pk)
 
         if request.method == 'POST':
@@ -152,7 +162,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         methods=['post', 'delete'],
         permission_classes=(IsAuthenticated,),
     )
-    def shopping_cart(self, request, pk):
+    def shopping_cart(self, request: HttpRequest, pk: int) -> HttpResponse:
         recipe = get_object_or_404(Recipe, pk=pk)
 
         if request.method == 'POST':
@@ -184,23 +194,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
         methods=['get'],
         permission_classes=(IsAuthenticated,),
     )
-    def download_shopping_cart(self, request):
+    def download_shopping_cart(self, request: HttpRequest) -> HttpResponse:
         ingredients = (
-            IngredientAmount.objects
-            .filter(recipe__shopping_cart__user=request.user)
+            IngredientAmount.objects.filter(
+                recipe__shopping_cart__user=request.user,
+            )
             .values('ingredient__name', 'ingredient__measurement_unit')
-            .annotate(amount=Sum('amount')),
+            .annotate(amount=Sum('amount'))
+            .values_list(
+                'ingredient__name',
+                'amount',
+                'ingredient__measurement_unit',
+            )
         )
-        for ingredient in ingredients:
-            print(ingredient)
         shopping_cart = []
-        shopping_cart += '\n'.join([
-            f'- {ingredient["ingredient__name"]} '
-            f'({ingredient["ingredient__measurement_unit"]})'
-            f' - {ingredient["amount"]}'
-            for ingredient in ingredients
-        ])
+        for ingredient in ingredients:
+            shopping_cart.append('{} - {} {}.\n'.format(*ingredient))
+        filename = 'shopping-list.txt'
         response = HttpResponse(shopping_cart, content_type='text/plain')
-        FILE_NAME = shopping_cart
-        response['Content-Disposition'] = f'attachment; filename={FILE_NAME}'
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+            filename,
+        )
         return response
