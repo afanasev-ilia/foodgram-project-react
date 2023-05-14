@@ -2,19 +2,13 @@
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-
-# from rest_framework.views import APIView
 from djoser.views import UserViewSet
-
-# from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets  # , mixins, serializers
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-
-# from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.filters import RecipeFilter
+from api.filters import CustomRecipeFilter
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrAdminOrSuperuser
 from api.serializers import (
     CustomUserSerializer,
@@ -29,10 +23,6 @@ from api.serializers import (
 from core.utils import CustomPageNumberPagination
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
-
-# from .filters import TitleFilter
-# from .permissions import (IsAdminOrReadOnly, IsAdminOrSuperUser,
-#                           IsAuthorOrModeratorOrAdminOrSuperuser)
 
 
 class CustomUsersViewSet(UserViewSet):
@@ -98,7 +88,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = None
-    filter_backends = [filters.SearchFilter]
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('^name',)
 
 
@@ -114,7 +104,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPageNumberPagination
     permission_classes = (IsAuthorOrAdminOrSuperuser,)
     filter_backends = (DjangoFilterBackend,)
-    filterset_class = RecipeFilter
+    filterset_class = CustomRecipeFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

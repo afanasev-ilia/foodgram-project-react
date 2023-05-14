@@ -6,7 +6,7 @@ from recipes.models import Recipe, Tag
 User = get_user_model()
 
 
-class RecipeFilter(FilterSet):
+class CustomRecipeFilter(FilterSet):
     tags = filters.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',
