@@ -1,21 +1,20 @@
 # from django.http import HttpRequest
 # from django.core import exceptions as django_exceptions
-# from rest_framework.generics import get_object_or_404
 # from rest_framework.validators import UniqueValidator
 import base64
 
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers, status
-from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 
 from recipes.models import (
+    Favorite,
     Ingredient,
     IngredientAmount,
     Recipe,
-    Tag,
-    Favorite,
     ShoppingCart,
+    Tag,
 )
 from users.models import Follow, User
 
@@ -68,7 +67,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = ('name', 'measurement_unit')
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -147,26 +146,92 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
 
+class IngredientAmounCreateSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(write_only=True)
+    amount = serializers.IntegerField(write_only=True, min_value=1)
+
+    class Meta:
+        model = IngredientAmount
+        fields = ('id', 'amount')
+
+
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, read_only=True)
-    author = CustomUserSerializer(read_only=True)
-    ingredients = IngredientAmountSerializer(
+    ingredients = IngredientAmounCreateSerializer(many=True)
+    tags = serializers.PrimaryKeyRelatedField(
         many=True,
-        read_only=True,
-        source='ingredient_amount',
+        queryset=Tag.objects.all(),
     )
     image = Base64ImageField()
+    author = CustomUserSerializer(read_only=True)
 
     class Meta:
         model = Recipe
         fields = (
+            'id',
             'ingredients',
             'tags',
             'image',
             'name',
             'text',
             'cooking_time',
+            'author',
         )
+
+    def validate_ingredients(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                'Это поле не может быть пустым.',
+            )
+        ingredients_list = []
+        for ingredient_value in value:
+            ingredient = get_object_or_404(
+                Ingredient,
+                id=ingredient_value['id'],
+            )
+            if ingredient in ingredients_list:
+                raise serializers.ValidationError(
+                    'Ингридиенты не могут повторяться.',
+                )
+            ingredients_list.append(ingredient)
+        return value
+
+    def validate_tags(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                'Это поле не может быть пустым.',
+            )
+        tags_list = []
+        for tag in value:
+            if tag in tags_list:
+                raise serializers.ValidationError('Тэги не могут повторяться.')
+            tags_list.append(tag)
+        return value
+
+    def ingredients_tags_set(self, ingredients, tags, recipe):
+        recipe.tags.set(tags)
+        IngredientAmount.objects.bulk_create(
+            [
+                IngredientAmount(
+                    ingredient=Ingredient.objects.get(
+                        id=ingredient_data['id'],
+                    ),
+                    recipe=recipe,
+                    amount=ingredient_data['amount'],
+                )
+                for ingredient_data in ingredients
+            ],
+        )
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+        self.ingredients_tags_set(
+            ingredients=ingredients,
+            tags=tags,
+            recipe=recipe,
+        )
+        return recipe
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -210,12 +275,12 @@ class FollowSerializer(serializers.ModelSerializer):
         author = self.instance
         user = self.context.get('request').user
         if Follow.objects.filter(author=author, user=user).exists():
-            raise ValidationError(
+            raise serializers.ValidationError(
                 detail='Вы уже подписаны на этого пользователя!',
                 code=status.HTTP_400_BAD_REQUEST,
             )
         if user == author:
-            raise ValidationError(
+            raise serializers.ValidationError(
                 detail='Вы не можете подписаться на самого себя!',
                 code=status.HTTP_400_BAD_REQUEST,
             )
@@ -233,12 +298,11 @@ class RecipeFollowSerializer(serializers.ModelSerializer):
 
 
 class RecipeFavoriteSerializer(RecipeFollowSerializer):
-
     def validate(self, data):
         recipe = self.instance
         user = self.context.get('request').user
         if Favorite.objects.filter(recipe=recipe, user=user).exists():
-            raise ValidationError(
+            raise serializers.ValidationError(
                 detail='Рецепт уже есть в избранном',
                 code=status.HTTP_400_BAD_REQUEST,
             )
@@ -246,102 +310,12 @@ class RecipeFavoriteSerializer(RecipeFollowSerializer):
 
 
 class RecipeShoppingCartSerializer(RecipeFollowSerializer):
-
     def validate(self, data):
         recipe = self.instance
         user = self.context.get('request').user
         if ShoppingCart.objects.filter(recipe=recipe, user=user).exists():
-            raise ValidationError(
+            raise serializers.ValidationError(
                 detail='Рецепт уже есть в списке покупок',
                 code=status.HTTP_400_BAD_REQUEST,
             )
         return data
-# class CategorySerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Category
-#         fields = ('name', 'slug')
-#         lookup_field = 'slug'
-#         extra_kwargs = {
-#             'url': {'lookup_field': 'slug'}
-#         }
-
-
-# class TitleSerializerRead(serializers.ModelSerializer):
-#     '''Сериализатор для работы с title при LIST/RETRIEVE.'''
-#     category = CategorySerializer(read_only=True)
-#     genre = GenresSerializer(many=True, read_only=True)
-#     rating = serializers.IntegerField(
-#         source='reviews__score__avg', read_only=True
-#     )
-
-#     class Meta:
-#         fields = '__all__'
-#         model = Title
-
-
-# class TitleSerializerCreate(serializers.ModelSerializer):
-#     '''Сериализатор для работы с title при POST/PUT/PATCH.'''
-#     category = serializers.SlugRelatedField(
-#         queryset=Category.objects.all(),
-#         slug_field='slug'
-#     )
-#     genre = serializers.SlugRelatedField(
-#         queryset=Genre.objects.all(),
-#         slug_field='slug',
-#         many=True
-#     )
-
-#     class Meta:
-#         fields = '__all__'
-#         model = Title
-
-
-# class ReviewsSerializer(serializers.ModelSerializer):
-#     title = serializers.SlugRelatedField(
-#         slug_field='name',
-#         read_only=True,
-#     )
-#     author = serializers.SlugRelatedField(
-#         default=serializers.CurrentUserDefault(),
-#         slug_field='username',
-#         read_only=True
-#     )
-
-#     def get_author(self, request: HttpRequest) -> User:
-#         return self.context.get('request').user
-
-#     def get_title(self, request: HttpRequest) -> Title:
-#         return get_object_or_404(
-#             Title,
-#             pk=self.context.get('view').kwargs.get('title_id'),
-#         )
-
-#     def validate(self, data):
-#         if self.context.get('request').method == 'POST':
-#             if Review.objects.filter(
-#                     title=self.get_title(self),
-#                     author=self.get_author(self),
-#             ).exists():
-#                 raise ValidationError(
-#                     'На одно произведение можно оставить только один отзыв',
-#                 )
-#         return data
-
-#     class Meta:
-#         model = Review
-#         fields = ('author', 'title', 'id', 'text', 'pub_date', 'score')
-
-
-# class CommentsSerializer(serializers.ModelSerializer):
-#     review = serializers.SlugRelatedField(
-#         slug_field='text',
-#         read_only=True
-#     )
-#     author = serializers.SlugRelatedField(
-#         slug_field='username',
-#         read_only=True
-#     )
-
-#     class Meta:
-#         model = Comment
-#         fields = ('author', 'review', 'id', 'text', 'pub_date')

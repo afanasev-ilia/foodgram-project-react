@@ -56,7 +56,7 @@ class Ingredient(DefaultModel):
         verbose_name_plural = 'ингредиенты'
 
     def __str__(self) -> str:
-        return truncatechars(self.name, settings.NUMCATECHARS)
+        return f'{self.name}, {self.measurement_unit}'
 
 
 class Recipe(TimestampedModel):
@@ -94,7 +94,7 @@ class Recipe(TimestampedModel):
     cooking_time = models.IntegerField(
         'время приготовления (в минутах)',
         validators=[
-            MinValueValidator(1, message='значение должно быть больше 1')
+            MinValueValidator(1, message='значение должно быть больше 1'),
         ],
         help_text='укажите время приготовления (в минутах)',
     )
@@ -124,7 +124,7 @@ class IngredientAmount(DefaultModel):
     amount = models.IntegerField(
         'количество',
         validators=[
-            MinValueValidator(1, message='значение должно быть больше 1')
+            MinValueValidator(1, message='значение должно быть больше 1'),
         ],
     )
 

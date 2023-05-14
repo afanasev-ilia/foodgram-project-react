@@ -1,6 +1,7 @@
 # from django.db.models import Avg, QuerySet
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 
 # from rest_framework.views import APIView
 from djoser.views import UserViewSet
@@ -12,7 +13,6 @@ from rest_framework.decorators import action
 # from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
 
 from api.filters import RecipeFilter
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrAdminOrSuperuser
@@ -21,9 +21,9 @@ from api.serializers import (
     FollowSerializer,
     IngredientSerializer,
     RecipeCreateSerializer,
-    RecipeShoppingCartSerializer,
     RecipeFavoriteSerializer,
     RecipeSerializer,
+    RecipeShoppingCartSerializer,
     TagSerializer,
 )
 from core.utils import CustomPageNumberPagination
@@ -52,7 +52,9 @@ class CustomUsersViewSet(UserViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
-        methods=['get'], detail=False, permission_classes=(IsAuthenticated,)
+        methods=['get'],
+        detail=False,
+        permission_classes=(IsAuthenticated,),
     )
     def subscriptions(self, request):
         following = User.objects.filter(following__user=request.user)
@@ -95,13 +97,15 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    pagination_class = None
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('^name',)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
     permission_classes = (IsAdminOrReadOnly,)
 
 
