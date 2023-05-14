@@ -1,5 +1,6 @@
 # from django.db.models import Avg, QuerySet
-from django.http import Http404
+from django.db.models import Sum
+from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -21,7 +22,7 @@ from api.serializers import (
     TagSerializer,
 )
 from core.utils import CustomPageNumberPagination
-from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from recipes.models import Favorite, Ingredient, IngredientAmount, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
 
 
@@ -177,3 +178,29 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=(IsAuthenticated,),
+    )
+    def download_shopping_cart(self, request):
+        ingredients = (
+            IngredientAmount.objects
+            .filter(recipe__shopping_cart__user=request.user)
+            .values('ingredient__name', 'ingredient__measurement_unit')
+            .annotate(amount=Sum('amount')),
+        )
+        for ingredient in ingredients:
+            print(ingredient)
+        shopping_cart = []
+        shopping_cart += '\n'.join([
+            f'- {ingredient["ingredient__name"]} '
+            f'({ingredient["ingredient__measurement_unit"]})'
+            f' - {ingredient["amount"]}'
+            for ingredient in ingredients
+        ])
+        response = HttpResponse(shopping_cart, content_type='text/plain')
+        FILE_NAME = shopping_cart
+        response['Content-Disposition'] = f'attachment; filename={FILE_NAME}'
+        return response
