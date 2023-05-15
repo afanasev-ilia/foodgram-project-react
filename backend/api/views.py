@@ -1,9 +1,9 @@
 from typing import Dict, Union
 
 from django.db.models import Sum
-from django_filters.rest_framework import DjangoFilterBackend
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
@@ -116,7 +116,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = CustomRecipeFilter
 
     def perform_create(
-        self, serializer: Dict[str, Union[str, int, float]],
+        self,
+        serializer: Dict[str, Union[str, int, float]],
     ) -> None:
         serializer.save(author=self.request.user)
 
@@ -212,7 +213,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             shopping_cart.append('{} - {} {}.\n'.format(*ingredient))
         filename = 'shopping-list.txt'
         response = HttpResponse(shopping_cart, content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+        response['Content-Disposition'] = 'attachment; filename={0}'.format(
             filename,
         )
         return response

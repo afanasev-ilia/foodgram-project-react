@@ -26,13 +26,25 @@ class CustomRecipeFilter(FilterSet):
             'author',
         )
 
-    def get_is_favorited(self, queryset: QuerySet, _, value):
+    def get_is_favorited(
+        self,
+        queryset: QuerySet,
+        unused: str,
+        value: bool,
+    ) -> QuerySet:
+        del unused
         user = self.request.user
         if value and not user.is_anonymous:
             return queryset.filter(favorite__user=user)
         return queryset
 
-    def get_is_in_shopping_cart(self, queryset: QuerySet, _, value):
+    def get_is_in_shopping_cart(
+        self,
+        queryset: QuerySet,
+        unused: str,
+        value: bool,
+    ) -> QuerySet:
+        del unused
         user = self.request.user
         if value and not user.is_anonymous:
             return queryset.filter(shopping_cart__user=user)

@@ -17,6 +17,7 @@ class RecipesAdmin(BaseAdmin):
         'id',
         'author',
         'name',
+        'is_favorited',
     )
     search_fields = ('name',)
     list_filter = (
@@ -28,6 +29,10 @@ class RecipesAdmin(BaseAdmin):
         'ingredients',
         'tags',
     )
+
+    @admin.display(description='В избранном')
+    def is_favorited(self, obj: Recipe) -> int:
+        return obj.favorite.count()
 
 
 @admin.register(Tag)
