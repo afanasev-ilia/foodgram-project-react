@@ -38,8 +38,6 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
             sudo docker pull iafanasev/backend:latest
-            sudo docker-compose stop
-            sudo docker-compose rm -f backend
             rm .env
             touch .env
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
