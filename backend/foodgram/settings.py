@@ -12,7 +12,7 @@ ADMIN_EMAIL = 'iafanasevmail@gmail.com'
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['51.250.15.191', '127.0.0.1', 'localhost']
 
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
