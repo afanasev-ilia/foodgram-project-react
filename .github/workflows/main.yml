@@ -37,7 +37,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            sudo docker pull iafanasev/backend:latest
             sudo docker-compose stop
             sudo docker-compose rm -f backend
             rm .env
@@ -50,4 +49,5 @@ jobs:
             echo DB_HOST=${{ secrets.DB_HOST }} >> .env
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
             sudo docker-compose up -d --build
+
 
