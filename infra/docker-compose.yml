@@ -10,9 +10,6 @@ services:
 
   backend:
     image: iafanasev/backend:latest
-    # build:
-    #     context: ../backend
-    #     dockerfile: Dockerfile
     restart: always
     volumes:
       - static_value:/app/static/
@@ -24,13 +21,10 @@ services:
 
   frontend:
     image: iafanasev/foodgram-frontend:latest
-    # build:
-    #   context: ../frontend
-    #   dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
-      - db
+      - backend
 
   nginx:
     image: nginx:1.21.3-alpine
@@ -43,7 +37,7 @@ services:
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
-      - backend
+      - frontend
     restart: always
 
 volumes:
