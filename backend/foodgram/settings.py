@@ -12,7 +12,7 @@ ADMIN_EMAIL = 'iafanasevmail@gmail.com'
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['51.250.15.191', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['51.250.65.192', '127.0.0.1', 'localhost']
 
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
@@ -95,7 +95,7 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', default='postgres'),
         'USER': os.getenv('POSTGRES_USER', default='postgres'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
-        'HOST': os.getenv('DB_HOST', default='localhost'),
+        'HOST': os.getenv('DB_HOST', default='db'),
         'PORT': os.getenv('DB_PORT', default=5432),
     },
 }
