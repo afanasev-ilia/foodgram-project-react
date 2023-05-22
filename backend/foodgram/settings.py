@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='s3cr3t')
 
 ADMIN_EMAIL = 'iafanasevmail@gmail.com'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['51.250.65.192', '127.0.0.1', 'localhost']
 
