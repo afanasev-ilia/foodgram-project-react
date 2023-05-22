@@ -19,6 +19,8 @@ ALLOWED_HOSTS = [
     'backend',
 ]
 
+CSRF_TRUSTED_ORIGINS = ['https://51.250.65.192']
+
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'core.apps.CoreConfig',
