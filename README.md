@@ -1,6 +1,6 @@
 # Foodgram
 
-(https://github.com/LihieTapki/foodgram-project-react)
+![foodgram-project](https://github.com/LihieTapki/foodgram-project-react/actions/workflows/main.yml/badge.svg)
 
 ## Описание
 
@@ -11,21 +11,10 @@
 Python 3.9
 Django 2.2.19
 
-#### Запуск проекта в dev-режиме
+#### Запуск проекта локально
 
-- Установите и активируйте виртуальное окружение
-- Установите зависимости из файла requirements.txt
 
-```bash
-pip install -r requirements.txt
-``` 
 
-- В папке с файлом manage.py выполните команду:
-
-```bash
-python3 manage.py runserver
-```
-
-### Автор
+##### Автор
 
 Илья Афанасьев
