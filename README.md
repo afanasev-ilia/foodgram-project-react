@@ -6,12 +6,70 @@
 
 «Продуктовый помощник». На этом сервисе пользователи могут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд.
 
+Документация в формате Redoc:
+
+```HTTP
+http://51.250.65.192/api/docs/
+```
+
+Проект доступен по ссылке:
+
+```HTTP
+http://51.250.65.192/
+```
+
 ### Технологии
 
 Python 3.9
 Django 2.2.19
 
-#### Как запустить проект
+### Запуск проекта на удаленном сервере
+
+Установить на сервере Docker, Docker Compose
+
+Скопировать на сервер файлы docker-compose.yml, nginx.conf из папки infra:
+
+```bash
+scp docker-compose.yml nginx.conf username@IP:/home/username/
+```
+
+Запускаем контейнеры Docker:
+
+```bash
+docker-compose up -d --build
+```
+
+Выполняем миграции:
+
+```bash
+docker-compose exec backend python manage.py migrate
+```
+
+Создаем суперппользователя:
+
+```bash
+docker-compose exec backend python manage.py createsuperuser
+```
+
+Собираем статику проекта:
+
+```bash
+docker-compose exec backend python manage.py collectstatic --no-input
+```
+
+Загружаем ингредиенты в БД:
+
+```bash
+python manage.py load_ingredients_csv
+```
+
+Останавливаем собранные контейнеры:
+
+```bash
+docker-compose down -v 
+```
+
+### Запуск проекта на локально
 
 Клонируем репозиторий и переходим в него в командной строке:
 
@@ -59,7 +117,7 @@ python manage.py load_ingredients_csv
 docker-compose down -v 
 ```
 
-##### Шаблон наполнения .env
+### Шаблон наполнения .env
 
 ```
 DB_ENGINE=django.db.backends.postgresql # указываем, что работаем с postgresql
@@ -71,6 +129,6 @@ DB_PORT=5432 # порт для подключения к БД
 ```
 
 
-###### Автор
+#### Автор
 
 Илья Афанасьев
