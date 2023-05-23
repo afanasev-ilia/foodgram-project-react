@@ -11,10 +11,66 @@
 Python 3.9
 Django 2.2.19
 
-#### Запуск проекта локально
+#### Как запустить проект
+
+Клонируем репозиторий и переходим в него в командной строке:
+
+```bash
+git clone git@github.com:LihieTapki/foodgram-project-react.git
+```
+
+```bash
+cd infra
+```
+
+Запускаем docker-compose:
+
+```bash
+docker-compose up -d --build
+```
+
+Выполняем миграции:
+
+```bash
+docker-compose exec backend python manage.py migrate
+```
+
+Создаем суперппользователя:
+
+```bash
+docker-compose exec backend python manage.py createsuperuser
+```
+
+Собираем статику проекта:
+
+```bash
+docker-compose exec backend python manage.py collectstatic --no-input
+```
+
+Загружаем ингредиенты в БД:
+
+```bash
+python manage.py load_ingredients_csv
+```
+
+Останавливаем собранные контейнеры:
+
+```bash
+docker-compose down -v 
+```
+
+##### Шаблон наполнения .env
+
+```
+DB_ENGINE=django.db.backends.postgresql # указываем, что работаем с postgresql
+DB_NAME=postgres # имя базы данных
+POSTGRES_USER=postgres # логин для подключения к базе данных
+POSTGRES_PASSWORD=postgres # пароль для подключения к БД (установите свой)
+DB_HOST=db # название сервиса (контейнера)
+DB_PORT=5432 # порт для подключения к БД 
+```
 
 
-
-##### Автор
+###### Автор
 
 Илья Афанасьев
