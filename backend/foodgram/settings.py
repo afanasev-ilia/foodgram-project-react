@@ -10,13 +10,14 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='s3cr3t')
 
 ADMIN_EMAIL = 'iafanasevmail@gmail.com'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     '51.250.65.192',
     '127.0.0.1',
     'localhost',
     'backend',
+    'foodgram.servehttp.com',
 ]
 
 CSRF_TRUSTED_ORIGINS = ['http://51.250.65.192']
