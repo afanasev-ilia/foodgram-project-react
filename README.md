@@ -9,13 +9,13 @@
 Документация в формате Redoc:
 
 ```HTTP
-http://51.250.65.192/api/docs/
+http://foodgram.servehttp.com/api/docs/
 ```
 
 Проект доступен по ссылке:
 
 ```HTTP
-http://51.250.65.192/
+http://foodgram.servehttp.com/
 ```
 
 ### Технологии
