@@ -18,12 +18,12 @@ http://foodgram.servehttp.com/api/docs/
 http://foodgram.servehttp.com/
 ```
 
-### Технологии
+## Технологии
 
 Python 3.9
 Django 2.2.19
 
-### Запуск проекта на удаленном сервере
+## Запуск проекта на удаленном сервере
 
 Установить на сервере Docker, Docker Compose
 
@@ -69,7 +69,7 @@ python manage.py load_ingredients_csv
 docker-compose down -v 
 ```
 
-### Запуск проекта на локально
+## Запуск проекта на локально
 
 Клонируем репозиторий и переходим в него в командной строке:
 
@@ -117,7 +117,7 @@ python manage.py load_ingredients_csv
 docker-compose down -v 
 ```
 
-### Шаблон наполнения .env
+## Шаблон наполнения .env
 
 ```
 DB_ENGINE=django.db.backends.postgresql # указываем, что работаем с postgresql
@@ -129,6 +129,6 @@ DB_PORT=5432 # порт для подключения к БД
 ```
 
 
-#### Автор
+## Автор
 
 Илья Афанасьев
