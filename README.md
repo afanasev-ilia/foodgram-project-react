@@ -21,13 +21,6 @@
 http://foodgram.servehttp.com/api/docs/
 ```
 
-Проект доступен по ссылке:
-
-```HTTP
-http://foodgram.servehttp.com/
-```
-
-
 ## Запуск проекта на удаленном сервере
 
 Установить на сервере Docker, Docker Compose
